@@ -20,7 +20,19 @@ import {
   Volume2,
   Gauge,
   Star,
-  Info
+  Info,
+  RefreshCw,
+  MessageCircle,
+  ShoppingCart,
+  DollarSign,
+  AlertCircle,
+  HelpCircle,
+  Pause,
+  Plus,
+  Trash2,
+  Edit3,
+  Moon,
+  Pencil
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -46,7 +58,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Agent } from '@/types/agent';
+import { Agent, FollowUpStage, FollowUpTemplate } from '@/types/agent';
 
 interface IdentityTabProps {
   agent: Agent;
@@ -93,6 +105,16 @@ const VOICE_TONE_DETAILS = {
   entusiasmado: { icon: '🚀', description: 'Energético e motivador' },
 };
 
+const FOLLOW_UP_STAGES: { key: FollowUpStage; label: string; icon: React.ReactNode; description: string; color: string }[] = [
+  { key: 'initial_contact', label: 'Contato Inicial', icon: <MessageCircle className="h-4 w-4" />, description: 'Lead iniciou mas não engajou', color: 'bg-slate-500/10 border-slate-500/30 text-slate-400' },
+  { key: 'product_aware', label: 'Conheceu Produto', icon: <Star className="h-4 w-4" />, description: 'Viu produto mas não perguntou preço', color: 'bg-blue-500/10 border-blue-500/30 text-blue-400' },
+  { key: 'price_aware', label: 'Conheceu Preço', icon: <DollarSign className="h-4 w-4" />, description: 'Sabe o preço mas não comprou', color: 'bg-green-500/10 border-green-500/30 text-green-400' },
+  { key: 'objection_raised', label: 'Fez Objeção', icon: <AlertCircle className="h-4 w-4" />, description: 'Levantou objeção e saiu', color: 'bg-orange-500/10 border-orange-500/30 text-orange-400' },
+  { key: 'cart_abandoned', label: 'Carrinho Abandonado', icon: <ShoppingCart className="h-4 w-4" />, description: 'Iniciou checkout mas não finalizou', color: 'bg-red-500/10 border-red-500/30 text-red-400' },
+  { key: 'negotiation', label: 'Em Negociação', icon: <RefreshCw className="h-4 w-4" />, description: 'Pedindo desconto ou condição especial', color: 'bg-purple-500/10 border-purple-500/30 text-purple-400' },
+  { key: 'waiting_decision', label: 'Vai Pensar', icon: <Pause className="h-4 w-4" />, description: 'Disse que vai pensar/analisar', color: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400' },
+];
+
 export function IdentityTab({ agent, onUpdate }: IdentityTabProps) {
   const [openSections, setOpenSections] = useState({
     personality: true,
@@ -101,9 +123,13 @@ export function IdentityTab({ agent, onUpdate }: IdentityTabProps) {
     communication: true,
     messages: false,
     behavior: false,
+    followUp: false,
     availability: false,
     advanced: false,
   });
+  
+  const [editingTemplate, setEditingTemplate] = useState<string | null>(null);
+  const [selectedStage, setSelectedStage] = useState<FollowUpStage>('initial_contact');
 
   const toggleSection = (section: keyof typeof openSections) => {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
@@ -128,6 +154,52 @@ export function IdentityTab({ agent, onUpdate }: IdentityTabProps) {
     if (value <= 50) return 'Moderado';
     if (value <= 75) return 'Alto';
     return 'Muito Alto';
+  };
+
+  const formatDelay = (minutes: number) => {
+    if (minutes < 60) return `${minutes}min`;
+    if (minutes < 1440) return `${Math.round(minutes / 60)}h`;
+    return `${Math.round(minutes / 1440)}d`;
+  };
+
+  const getTemplatesForStage = (stage: FollowUpStage) => {
+    return agent.followUpStrategy?.templates.filter(t => t.stage === stage) || [];
+  };
+
+  const updateFollowUpStrategy = (updates: Partial<typeof agent.followUpStrategy>) => {
+    onUpdate({
+      followUpStrategy: { ...agent.followUpStrategy!, ...updates },
+    });
+  };
+
+  const updateTemplate = (templateId: string, updates: Partial<FollowUpTemplate>) => {
+    const newTemplates = agent.followUpStrategy!.templates.map(t =>
+      t.id === templateId ? { ...t, ...updates } : t
+    );
+    updateFollowUpStrategy({ templates: newTemplates });
+  };
+
+  const addTemplate = (stage: FollowUpStage) => {
+    const existingForStage = getTemplatesForStage(stage);
+    const newAttempt = existingForStage.length + 1;
+    const newTemplate: FollowUpTemplate = {
+      id: `fup_${stage}_${Date.now()}`,
+      stage,
+      attempt: newAttempt,
+      delayMinutes: newAttempt === 1 ? 30 : 1440 * newAttempt,
+      message: '',
+      isActive: true,
+    };
+    updateFollowUpStrategy({
+      templates: [...agent.followUpStrategy!.templates, newTemplate],
+    });
+    setEditingTemplate(newTemplate.id);
+  };
+
+  const deleteTemplate = (templateId: string) => {
+    updateFollowUpStrategy({
+      templates: agent.followUpStrategy!.templates.filter(t => t.id !== templateId),
+    });
   };
 
   const personaDetail = PERSONA_DETAILS[agent.persona] || PERSONA_DETAILS.consultor;
@@ -766,6 +838,241 @@ export function IdentityTab({ agent, onUpdate }: IdentityTabProps) {
                 onCheckedChange={(checked) => onUpdate({ typingSimulation: checked })}
               />
             </div>
+          </CollapsibleContent>
+        </Collapsible>
+
+        {/* Follow-up Strategy by Stage */}
+        <Collapsible open={openSections.followUp} onOpenChange={() => toggleSection('followUp')}>
+          <CollapsibleTrigger className="flex items-center justify-between w-full p-4 rounded-lg border border-border bg-gradient-to-r from-primary/5 to-transparent hover:bg-card transition-colors">
+            <div className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4 text-primary" />
+              <span className="font-medium text-foreground">Estratégia de Follow-up</span>
+              <Badge variant="secondary" className="text-xs">Avançado</Badge>
+              {agent.followUpStrategy?.enabled && (
+                <Badge className="bg-green-500/10 text-green-400 border-green-500/30">Ativo</Badge>
+              )}
+            </div>
+            <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${openSections.followUp ? 'rotate-180' : ''}`} />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="mt-2 p-4 rounded-lg border border-border bg-card/30 space-y-6">
+            <p className="text-sm text-muted-foreground">
+              Configure mensagens de follow-up específicas para cada estágio do funil. Mensagens personalizadas aumentam em até 3x a taxa de recuperação de leads.
+            </p>
+
+            {/* Global Settings */}
+            <div className="p-4 rounded-lg bg-muted/30 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="cursor-pointer">Ativar Follow-up Inteligente</Label>
+                  <p className="text-xs text-muted-foreground">Envia mensagens automaticamente baseado no estágio do lead</p>
+                </div>
+                <Switch
+                  checked={agent.followUpStrategy?.enabled ?? true}
+                  onCheckedChange={(checked) => updateFollowUpStrategy({ enabled: checked })}
+                />
+              </div>
+
+              {agent.followUpStrategy?.enabled && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-background/50">
+                      <div className="flex items-center gap-2">
+                        <Brain className="h-4 w-4 text-purple-400" />
+                        <div>
+                          <Label className="text-sm">Timing Inteligente</Label>
+                          <p className="text-xs text-muted-foreground">Envia quando lead estava ativo</p>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={agent.followUpStrategy?.useSmartTiming ?? true}
+                        onCheckedChange={(checked) => updateFollowUpStrategy({ useSmartTiming: checked })}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-background/50">
+                      <div className="flex items-center gap-2">
+                        <Moon className="h-4 w-4 text-blue-400" />
+                        <div>
+                          <Label className="text-sm">Respeitar Horário Silencioso</Label>
+                          <p className="text-xs text-muted-foreground">{agent.followUpStrategy?.quietHoursStart} - {agent.followUpStrategy?.quietHoursEnd}</p>
+                        </div>
+                      </div>
+                      <Switch
+                        checked={agent.followUpStrategy?.respectQuietHours ?? true}
+                        onCheckedChange={(checked) => updateFollowUpStrategy({ respectQuietHours: checked })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1 space-y-2">
+                      <Label className="text-sm">Máx. mensagens/dia por lead</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={10}
+                        value={agent.followUpStrategy?.maxDailyMessages ?? 3}
+                        onChange={(e) => updateFollowUpStrategy({ maxDailyMessages: parseInt(e.target.value) || 3 })}
+                        className="w-24"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={agent.followUpStrategy?.stopOnNegativeResponse ?? true}
+                        onCheckedChange={(checked) => updateFollowUpStrategy({ stopOnNegativeResponse: checked })}
+                      />
+                      <Label className="text-sm">Parar se lead responder negativamente</Label>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Stage Selector */}
+            {agent.followUpStrategy?.enabled && (
+              <>
+                <div className="space-y-3">
+                  <Label>Selecione o Estágio do Funil</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {FOLLOW_UP_STAGES.map((stage) => {
+                      const templates = getTemplatesForStage(stage.key);
+                      const activeCount = templates.filter(t => t.isActive).length;
+                      return (
+                        <button
+                          key={stage.key}
+                          onClick={() => setSelectedStage(stage.key)}
+                          className={`p-3 rounded-lg border-2 transition-all text-left ${
+                            selectedStage === stage.key
+                              ? `${stage.color} border-current`
+                              : 'border-border hover:border-muted-foreground/50 bg-card/50'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            {stage.icon}
+                            <span className="text-xs font-medium">{stage.label}</span>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground line-clamp-1">{stage.description}</p>
+                          {activeCount > 0 && (
+                            <Badge variant="outline" className="mt-2 text-[10px]">
+                              {activeCount} msg{activeCount > 1 ? 's' : ''}
+                            </Badge>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Templates for Selected Stage */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label>Mensagens para: {FOLLOW_UP_STAGES.find(s => s.key === selectedStage)?.label}</Label>
+                    <button
+                      onClick={() => addTemplate(selectedStage)}
+                      className="flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      <Plus className="h-3 w-3" /> Adicionar mensagem
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {getTemplatesForStage(selectedStage).sort((a, b) => a.attempt - b.attempt).map((template) => (
+                      <div
+                        key={template.id}
+                        className={`p-3 rounded-lg border transition-all ${
+                          template.isActive ? 'border-border bg-card/50' : 'border-border/50 bg-muted/20 opacity-60'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">
+                                #{template.attempt}
+                              </Badge>
+                              <Badge variant="secondary" className="text-xs">
+                                Após {formatDelay(template.delayMinutes)}
+                              </Badge>
+                              <Switch
+                                checked={template.isActive}
+                                onCheckedChange={(checked) => updateTemplate(template.id, { isActive: checked })}
+                              />
+                            </div>
+                            
+                            {editingTemplate === template.id ? (
+                              <div className="space-y-2">
+                                <Textarea
+                                  value={template.message}
+                                  onChange={(e) => updateTemplate(template.id, { message: e.target.value })}
+                                  placeholder="Digite a mensagem de follow-up... Use {produto} para inserir o nome do produto."
+                                  className="min-h-[80px] text-sm"
+                                />
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    type="number"
+                                    value={template.delayMinutes}
+                                    onChange={(e) => updateTemplate(template.id, { delayMinutes: parseInt(e.target.value) || 30 })}
+                                    className="w-24"
+                                  />
+                                  <span className="text-xs text-muted-foreground">minutos</span>
+                                  <button
+                                    onClick={() => setEditingTemplate(null)}
+                                    className="ml-auto text-xs text-primary hover:underline"
+                                  >
+                                    Salvar
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">
+                                {template.message || <em className="text-muted-foreground/50">Clique para editar...</em>}
+                              </p>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => setEditingTemplate(editingTemplate === template.id ? null : template.id)}
+                              className="p-1.5 rounded hover:bg-muted"
+                            >
+                              <Pencil className="h-3 w-3 text-muted-foreground" />
+                            </button>
+                            <button
+                              onClick={() => deleteTemplate(template.id)}
+                              className="p-1.5 rounded hover:bg-destructive/10"
+                            >
+                              <Trash2 className="h-3 w-3 text-destructive" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {getTemplatesForStage(selectedStage).length === 0 && (
+                      <div className="text-center py-6 text-muted-foreground">
+                        <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">Nenhuma mensagem configurada para este estágio</p>
+                        <button
+                          onClick={() => addTemplate(selectedStage)}
+                          className="text-primary text-sm hover:underline mt-1"
+                        >
+                          Adicionar primeira mensagem
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                  <div className="flex items-start gap-2">
+                    <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
+                    <div className="text-sm text-muted-foreground">
+                      <strong className="text-foreground">Dica:</strong> Use <code className="bg-muted px-1 rounded">{'{produto}'}</code> para inserir dinamicamente o nome do produto. 
+                      Leads que abandonam carrinho respondem melhor a mensagens enviadas em até 1 hora.
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </CollapsibleContent>
         </Collapsible>
 

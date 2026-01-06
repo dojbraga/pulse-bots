@@ -1,5 +1,5 @@
 import { Agent } from '@/types/agent';
-import { defaultBusinessHours, defaultPersonalityTraits } from './defaultAgent';
+import { defaultBusinessHours, defaultPersonalityTraits, defaultFollowUpStrategy, defaultFollowUpTemplates } from './defaultAgent';
 
 export const mockAgents: Agent[] = [
   {
@@ -33,6 +33,14 @@ export const mockAgents: Agent[] = [
     followUpDelay: 15,
     maxFollowUps: 5,
     typingSimulation: true,
+    followUpStrategy: {
+      ...defaultFollowUpStrategy,
+      maxDailyMessages: 5,
+      templates: defaultFollowUpTemplates.map(t => ({
+        ...t,
+        delayMinutes: Math.round(t.delayMinutes * 0.7), // 30% mais rápido
+      })),
+    },
     
     // Availability
     businessHours: {
@@ -127,6 +135,14 @@ export const mockAgents: Agent[] = [
     followUpDelay: 60,
     maxFollowUps: 2,
     typingSimulation: true,
+    followUpStrategy: {
+      ...defaultFollowUpStrategy,
+      maxDailyMessages: 2,
+      templates: defaultFollowUpTemplates.map(t => ({
+        ...t,
+        delayMinutes: Math.round(t.delayMinutes * 1.5), // 50% mais lento
+      })),
+    },
     
     businessHours: defaultBusinessHours,
     
@@ -170,6 +186,7 @@ export const mockAgents: Agent[] = [
     followUpDelay: 120,
     maxFollowUps: 2,
     typingSimulation: false,
+    followUpStrategy: defaultFollowUpStrategy,
     
     businessHours: {
       ...defaultBusinessHours,
