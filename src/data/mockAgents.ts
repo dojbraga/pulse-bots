@@ -1,4 +1,5 @@
 import { Agent } from '@/types/agent';
+import { defaultBusinessHours } from './defaultAgent';
 
 export const mockAgents: Agent[] = [
   {
@@ -7,6 +8,37 @@ export const mockAgents: Agent[] = [
     isActive: true,
     persona: 'agressivo',
     voiceTone: 'direto',
+    avatar: '',
+    
+    // Company Context
+    companyName: 'Escola de Vendas Premium',
+    industry: 'Educação',
+    companyDescription: 'Somos uma escola especializada em formar os melhores vendedores do mercado.',
+    targetAudience: 'Profissionais de vendas, empreendedores e gestores comerciais',
+    
+    // Communication Style
+    responseLength: 'conciso',
+    formalityLevel: 'informal',
+    useEmojis: true,
+    language: 'pt-BR',
+    
+    // Messages
+    greetingMessage: 'Fala! 🔥 Vi que você tem interesse em turbinar suas vendas. Posso te ajudar?',
+    farewellMessage: 'Valeu demais! Qualquer dúvida, só chamar. Bora vender! 💪',
+    awayMessage: 'Estou fora agora, mas deixa sua mensagem que respondo assim que voltar!',
+    
+    // Behavior
+    proactivityLevel: 'alto',
+    followUpDelay: 15,
+    maxFollowUps: 5,
+    typingSimulation: true,
+    
+    // Availability
+    businessHours: {
+      ...defaultBusinessHours,
+      enabled: true,
+    },
+    
     systemPrompt: 'Você é um vendedor focado em conversão...',
     conversationsToday: 24,
     whatsappConnected: true,
@@ -73,6 +105,29 @@ export const mockAgents: Agent[] = [
     isActive: true,
     persona: 'suporte',
     voiceTone: 'empatico',
+    avatar: '',
+    
+    companyName: 'TechSoft Solutions',
+    industry: 'Tecnologia',
+    companyDescription: 'Empresa de software focada em soluções para PMEs.',
+    targetAudience: 'Pequenas e médias empresas',
+    
+    responseLength: 'detalhado',
+    formalityLevel: 'neutro',
+    useEmojis: false,
+    language: 'pt-BR',
+    
+    greetingMessage: 'Olá! Sou a Clara, sua assistente de suporte. Como posso ajudar?',
+    farewellMessage: 'Fico feliz em ter ajudado! Qualquer dúvida, estarei aqui.',
+    awayMessage: 'Nosso horário de atendimento é das 9h às 18h. Deixe sua mensagem!',
+    
+    proactivityLevel: 'baixo',
+    followUpDelay: 60,
+    maxFollowUps: 2,
+    typingSimulation: true,
+    
+    businessHours: defaultBusinessHours,
+    
     systemPrompt: 'Você é uma assistente de suporte...',
     conversationsToday: 42,
     whatsappConnected: true,
@@ -92,6 +147,32 @@ export const mockAgents: Agent[] = [
     isActive: false,
     persona: 'consultor',
     voiceTone: 'profissional',
+    avatar: '',
+    
+    companyName: 'Consultoria Estratégica BR',
+    industry: 'Consultoria',
+    companyDescription: 'Consultoria especializada em transformação digital e estratégia de negócios.',
+    targetAudience: 'Executivos e C-Level de grandes empresas',
+    
+    responseLength: 'equilibrado',
+    formalityLevel: 'formal',
+    useEmojis: false,
+    language: 'pt-BR',
+    
+    greetingMessage: 'Bom dia! Sou o consultor responsável pelo seu atendimento. Em que posso ser útil?',
+    farewellMessage: 'Agradeço pelo seu tempo. Fico à disposição para futuras consultas.',
+    awayMessage: 'No momento estou em atendimento. Entrarei em contato assim que possível.',
+    
+    proactivityLevel: 'medio',
+    followUpDelay: 120,
+    maxFollowUps: 2,
+    typingSimulation: false,
+    
+    businessHours: {
+      ...defaultBusinessHours,
+      enabled: true,
+    },
+    
     systemPrompt: 'Você é um consultor especializado...',
     conversationsToday: 0,
     whatsappConnected: false,

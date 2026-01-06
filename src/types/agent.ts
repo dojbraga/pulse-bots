@@ -58,15 +58,58 @@ export interface IntegrationTrigger {
   isActive: boolean;
 }
 
+export interface BusinessHours {
+  enabled: boolean;
+  timezone: string;
+  schedule: {
+    [key: string]: { start: string; end: string; active: boolean };
+  };
+}
+
 export interface Agent {
   id: string;
   name: string;
   isActive: boolean;
-  persona: 'consultor' | 'agressivo' | 'suporte';
-  voiceTone: 'empatico' | 'direto' | 'amigavel' | 'profissional';
+  
+  // Identity
+  persona: 'consultor' | 'agressivo' | 'suporte' | 'closer' | 'qualificador';
+  voiceTone: 'empatico' | 'direto' | 'amigavel' | 'profissional' | 'entusiasmado';
+  avatar?: string;
+  
+  // Company Context
+  companyName: string;
+  industry: string;
+  companyDescription: string;
+  targetAudience: string;
+  
+  // Communication Style
+  responseLength: 'conciso' | 'equilibrado' | 'detalhado';
+  formalityLevel: 'informal' | 'neutro' | 'formal';
+  useEmojis: boolean;
+  language: string;
+  
+  // Messages
+  greetingMessage: string;
+  farewellMessage: string;
+  awayMessage: string;
+  
+  // Behavior
+  proactivityLevel: 'baixo' | 'medio' | 'alto';
+  followUpDelay: number; // minutes
+  maxFollowUps: number;
+  typingSimulation: boolean;
+  
+  // Availability
+  businessHours: BusinessHours;
+  
+  // Advanced
   systemPrompt: string;
+  
+  // Stats & Connections
   conversationsToday: number;
   whatsappConnected: boolean;
+  
+  // Features
   products: Product[];
   objectionRules: ObjectionRule[];
   forbiddenWords: string[];
