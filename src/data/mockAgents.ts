@@ -1,0 +1,62 @@
+import { Agent } from '@/types/agent';
+
+export const mockAgents: Agent[] = [
+  {
+    id: '1',
+    name: 'Vendedor Hunter',
+    isActive: true,
+    persona: 'agressivo',
+    voiceTone: 'direto',
+    systemPrompt: 'Você é um vendedor focado em conversão...',
+    conversationsToday: 24,
+    whatsappConnected: true,
+    products: [
+      { id: '1', name: 'Curso de Vendas', price: 997, description: 'Aprenda a vender mais', checkoutLink: 'https://checkout.com/curso-vendas' },
+      { id: '2', name: 'Mentoria Premium', price: 2497, description: 'Acompanhamento individual', checkoutLink: 'https://checkout.com/mentoria' },
+    ],
+    objectionRules: [
+      { id: '1', trigger: 'O cliente disse que está caro', action: 'Oferecer desconto de 5% e destacar o valor' },
+      { id: '2', trigger: 'O cliente quer pensar', action: 'Criar urgência com bônus por tempo limitado' },
+    ],
+    forbiddenWords: ['concorrente', 'barato', 'grátis'],
+    discountLimit: 15,
+    handoffContact: 'vendas@empresa.com',
+    webhookUrl: 'https://n8n.empresa.com/webhook/agent-1',
+  },
+  {
+    id: '2',
+    name: 'Suporte Clara',
+    isActive: true,
+    persona: 'suporte',
+    voiceTone: 'empatico',
+    systemPrompt: 'Você é uma assistente de suporte...',
+    conversationsToday: 42,
+    whatsappConnected: true,
+    products: [],
+    objectionRules: [
+      { id: '1', trigger: 'Cliente frustrado', action: 'Pedir desculpas e oferecer solução imediata' },
+    ],
+    forbiddenWords: ['problema seu', 'não sei'],
+    discountLimit: 0,
+    handoffContact: 'suporte@empresa.com',
+    webhookUrl: 'https://n8n.empresa.com/webhook/agent-2',
+  },
+  {
+    id: '3',
+    name: 'Consultor Expert',
+    isActive: false,
+    persona: 'consultor',
+    voiceTone: 'profissional',
+    systemPrompt: 'Você é um consultor especializado...',
+    conversationsToday: 0,
+    whatsappConnected: false,
+    products: [
+      { id: '1', name: 'Consultoria Estratégica', price: 5000, description: 'Análise completa do negócio', checkoutLink: 'https://checkout.com/consultoria' },
+    ],
+    objectionRules: [],
+    forbiddenWords: [],
+    discountLimit: 10,
+    handoffContact: 'consultoria@empresa.com',
+    webhookUrl: 'https://n8n.empresa.com/webhook/agent-3',
+  },
+];
