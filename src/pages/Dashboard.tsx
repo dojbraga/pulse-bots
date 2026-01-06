@@ -4,6 +4,7 @@ import { Plus, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AgentCard } from '@/components/AgentCard';
 import { mockAgents } from '@/data/mockAgents';
+import { createDefaultAgent } from '@/data/defaultAgent';
 import { Agent } from '@/types/agent';
 import { toast } from '@/hooks/use-toast';
 
@@ -37,23 +38,7 @@ export default function Dashboard() {
   };
 
   const handleCreateAgent = () => {
-    const newAgent: Agent = {
-      id: Date.now().toString(),
-      name: 'Novo Agente',
-      isActive: false,
-      persona: 'consultor',
-      voiceTone: 'profissional',
-      systemPrompt: '',
-      conversationsToday: 0,
-      whatsappConnected: false,
-      products: [],
-      objectionRules: [],
-      forbiddenWords: [],
-      discountLimit: 10,
-      handoffContact: '',
-      webhookUrl: '',
-      integrationTriggers: [],
-    };
+    const newAgent = createDefaultAgent(Date.now().toString());
     setAgents((prev) => [...prev, newAgent]);
     navigate(`/agent/${newAgent.id}`);
   };

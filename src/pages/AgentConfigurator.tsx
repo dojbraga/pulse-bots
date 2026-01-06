@@ -10,6 +10,7 @@ import { GuardrailsTab } from '@/components/configurator/GuardrailsTab';
 import { TriggersTab } from '@/components/configurator/TriggersTab';
 import { ConnectionsTab } from '@/components/configurator/ConnectionsTab';
 import { mockAgents } from '@/data/mockAgents';
+import { createDefaultAgent } from '@/data/defaultAgent';
 import { Agent, TabType } from '@/types/agent';
 import { toast } from '@/hooks/use-toast';
 
@@ -25,24 +26,7 @@ export default function AgentConfigurator() {
     if (foundAgent) {
       setAgent({ ...foundAgent });
     } else if (id) {
-      // New agent
-      setAgent({
-        id: id,
-        name: 'Novo Agente',
-        isActive: false,
-        persona: 'consultor',
-        voiceTone: 'profissional',
-        systemPrompt: '',
-        conversationsToday: 0,
-        whatsappConnected: false,
-        products: [],
-        objectionRules: [],
-        forbiddenWords: [],
-        discountLimit: 10,
-        handoffContact: '',
-        webhookUrl: '',
-        integrationTriggers: [],
-      });
+      setAgent(createDefaultAgent(id));
     }
   }, [id]);
 
