@@ -52,6 +52,7 @@ export default function Dashboard() {
       discountLimit: 10,
       handoffContact: '',
       webhookUrl: '',
+      integrationTriggers: [],
     };
     setAgents((prev) => [...prev, newAgent]);
     navigate(`/agent/${newAgent.id}`);

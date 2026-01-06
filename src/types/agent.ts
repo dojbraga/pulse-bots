@@ -12,6 +12,16 @@ export interface ObjectionRule {
   action: string;
 }
 
+export interface IntegrationTrigger {
+  id: string;
+  name: string;
+  event: 'lead_captured' | 'interest_identified' | 'objection_handled' | 'sale_completed' | 'handoff_requested' | 'custom';
+  customEvent?: string;
+  dataFields: string[];
+  webhookUrl: string;
+  isActive: boolean;
+}
+
 export interface Agent {
   id: string;
   name: string;
@@ -27,6 +37,7 @@ export interface Agent {
   discountLimit: number;
   handoffContact: string;
   webhookUrl: string;
+  integrationTriggers: IntegrationTrigger[];
 }
 
-export type TabType = 'identity' | 'catalog' | 'objections' | 'guardrails' | 'connections';
+export type TabType = 'identity' | 'catalog' | 'objections' | 'guardrails' | 'triggers' | 'connections';
