@@ -4,6 +4,23 @@ export interface FAQItem {
   answer: string;
 }
 
+export interface KnowledgeBase {
+  id: string;
+  name: string;
+  type: 'pdf' | 'doc' | 'link' | 'text';
+  url: string;
+  description?: string;
+}
+
+export interface LeadMaterial {
+  id: string;
+  name: string;
+  type: 'pdf' | 'doc' | 'link' | 'video';
+  url: string;
+  description?: string;
+}
+
+// Keep Attachment for backwards compatibility
 export interface Attachment {
   id: string;
   name: string;
@@ -20,7 +37,9 @@ export interface Product {
   description: string;
   checkoutLink: string;
   faq: FAQItem[];
-  attachments: Attachment[];
+  knowledgeBase: KnowledgeBase[];
+  leadMaterials: LeadMaterial[];
+  attachments?: Attachment[]; // deprecated, kept for backwards compatibility
 }
 
 export interface ObjectionRule {

@@ -21,8 +21,12 @@ export const mockAgents: Agent[] = [
           { id: '1', question: 'Quanto tempo tenho acesso?', answer: 'Acesso vitalício ao curso completo.' },
           { id: '2', question: 'Tem garantia?', answer: 'Sim, 7 dias de garantia incondicional.' },
         ],
-        attachments: [
+        knowledgeBase: [
+          { id: '1', name: 'Manual do Curso', type: 'pdf', url: 'https://exemplo.com/manual.pdf', description: 'Documentação técnica para o agente consultar' },
+        ],
+        leadMaterials: [
           { id: '1', name: 'Ementa do Curso', type: 'pdf', url: 'https://exemplo.com/ementa.pdf', description: 'Grade curricular completa' },
+          { id: '2', name: 'Vídeo do Coordenador', type: 'video', url: 'https://youtube.com/watch?v=xxx', description: 'Apresentação do coordenador do curso' },
         ],
       },
       { 
@@ -32,7 +36,8 @@ export const mockAgents: Agent[] = [
         description: 'Acompanhamento individual', 
         checkoutLink: 'https://checkout.com/mentoria',
         faq: [],
-        attachments: [],
+        knowledgeBase: [],
+        leadMaterials: [],
       },
     ],
     objectionRules: [
@@ -98,7 +103,8 @@ export const mockAgents: Agent[] = [
         description: 'Análise completa do negócio', 
         checkoutLink: 'https://checkout.com/consultoria',
         faq: [],
-        attachments: [],
+        knowledgeBase: [],
+        leadMaterials: [],
       },
     ],
     objectionRules: [],
