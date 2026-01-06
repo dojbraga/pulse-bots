@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, ChevronDown, ChevronRight, FileText, Link, HelpCircle, Paperclip } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronRight, FileText, Link, HelpCircle, Paperclip, Video, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/collapsible';
 import { Agent, Product, FAQItem, Attachment } from '@/types/agent';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface ProductCatalogTabProps {
   agent: Agent;
@@ -108,6 +109,7 @@ export function ProductCatalogTab({ agent, onUpdate }: ProductCatalogTabProps) {
       type: 'pdf',
       url: '',
       description: '',
+      sendToLead: true,
     };
     updateProduct(productId, { attachments: [...product.attachments, newAttachment] });
   };
@@ -297,30 +299,32 @@ export function ProductCatalogTab({ agent, onUpdate }: ProductCatalogTabProps) {
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Paperclip className="h-4 w-4 text-primary" />
-                          <h4 className="font-medium text-foreground">Anexos para RAG</h4>
+                          <Send className="h-4 w-4 text-primary" />
+                          <h4 className="font-medium text-foreground">Materiais para Envio ao Lead</h4>
                         </div>
                         <Button variant="outline" size="sm" onClick={() => addAttachment(product.id)} className="gap-1">
                           <Plus className="h-3 w-3" />
-                          Adicionar Anexo
+                          Adicionar Material
                         </Button>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Adicione documentos, links ou textos que o agente usará como base de conhecimento.
+                        Adicione materiais como PDFs (ementa, apresentação), vídeos do coordenador ou links úteis. 
+                        O agente poderá enviar esses materiais quando o lead pedir mais detalhes.
                       </p>
                       
                       {product.attachments.length === 0 ? (
                         <p className="text-sm text-muted-foreground italic">
-                          Nenhum anexo cadastrado. Adicione PDFs, links ou textos para enriquecer o conhecimento do agente.
+                          Nenhum material cadastrado. Adicione PDFs, vídeos ou links para o agente enviar aos leads interessados.
                         </p>
                       ) : (
                         <Table>
                           <TableHeader>
                             <TableRow className="bg-muted/30">
-                              <TableHead className="font-medium">Nome</TableHead>
+                              <TableHead className="font-medium">Nome do Material</TableHead>
                               <TableHead className="font-medium w-[120px]">Tipo</TableHead>
-                              <TableHead className="font-medium">URL / Conteúdo</TableHead>
+                              <TableHead className="font-medium">URL</TableHead>
                               <TableHead className="font-medium">Descrição</TableHead>
+                              <TableHead className="font-medium w-[100px] text-center">Enviar?</TableHead>
                               <TableHead className="w-[50px]"></TableHead>
                             </TableRow>
                           </TableHeader>
@@ -350,6 +354,12 @@ export function ProductCatalogTab({ agent, onUpdate }: ProductCatalogTabProps) {
                                         <div className="flex items-center gap-2">
                                           <FileText className="h-3 w-3" />
                                           PDF
+                                        </div>
+                                      </SelectItem>
+                                      <SelectItem value="video">
+                                        <div className="flex items-center gap-2">
+                                          <Video className="h-3 w-3" />
+                                          Vídeo
                                         </div>
                                       </SelectItem>
                                       <SelectItem value="doc">
@@ -385,8 +395,16 @@ export function ProductCatalogTab({ agent, onUpdate }: ProductCatalogTabProps) {
                                   <Input
                                     value={attachment.description || ''}
                                     onChange={(e) => updateAttachment(product.id, attachment.id, { description: e.target.value })}
-                                    placeholder="Breve descrição"
+                                    placeholder="Ex: Ementa completa do curso"
                                     className="border-transparent bg-transparent focus:bg-background focus:border-input"
+                                  />
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <Checkbox
+                                    checked={attachment.sendToLead !== false}
+                                    onCheckedChange={(checked) => 
+                                      updateAttachment(product.id, attachment.id, { sendToLead: !!checked })
+                                    }
                                   />
                                 </TableCell>
                                 <TableCell>
