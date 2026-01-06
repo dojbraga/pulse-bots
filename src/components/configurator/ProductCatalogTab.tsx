@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, ChevronDown, ChevronRight, FileText, Link, HelpCircle, Paperclip, Video, Send } from 'lucide-react';
+import { Plus, Trash2, ChevronDown, ChevronRight, FileText, Link, HelpCircle, Brain, Send, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,9 +23,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Agent, Product, FAQItem, Attachment } from '@/types/agent';
+import { Agent, Product, FAQItem, KnowledgeBase, LeadMaterial } from '@/types/agent';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 
 interface ProductCatalogTabProps {
   agent: Agent;
@@ -53,7 +52,8 @@ export function ProductCatalogTab({ agent, onUpdate }: ProductCatalogTabProps) {
       description: '',
       checkoutLink: '',
       faq: [],
-      attachments: [],
+      knowledgeBase: [],
+      leadMaterials: [],
     };
     onUpdate({ products: [...agent.products, newProduct] });
     setExpandedProducts(new Set([...expandedProducts, newProduct.id]));
@@ -70,6 +70,7 @@ export function ProductCatalogTab({ agent, onUpdate }: ProductCatalogTabProps) {
     onUpdate({ products: agent.products.filter((p) => p.id !== id) });
   };
 
+  // FAQ handlers
   const addFAQ = (productId: string) => {
     const product = agent.products.find((p) => p.id === productId);
     if (!product) return;
@@ -99,36 +100,68 @@ export function ProductCatalogTab({ agent, onUpdate }: ProductCatalogTabProps) {
     updateProduct(productId, { faq: product.faq.filter((f) => f.id !== faqId) });
   };
 
-  const addAttachment = (productId: string) => {
+  // Knowledge Base handlers
+  const addKnowledge = (productId: string) => {
     const product = agent.products.find((p) => p.id === productId);
     if (!product) return;
 
-    const newAttachment: Attachment = {
+    const newKnowledge: KnowledgeBase = {
       id: Date.now().toString(),
       name: '',
       type: 'pdf',
       url: '',
       description: '',
-      sendToLead: true,
     };
-    updateProduct(productId, { attachments: [...product.attachments, newAttachment] });
+    updateProduct(productId, { knowledgeBase: [...product.knowledgeBase, newKnowledge] });
   };
 
-  const updateAttachment = (productId: string, attachmentId: string, updates: Partial<Attachment>) => {
+  const updateKnowledge = (productId: string, knowledgeId: string, updates: Partial<KnowledgeBase>) => {
     const product = agent.products.find((p) => p.id === productId);
     if (!product) return;
 
-    const updatedAttachments = product.attachments.map((a) =>
-      a.id === attachmentId ? { ...a, ...updates } : a
+    const updatedKnowledge = product.knowledgeBase.map((k) =>
+      k.id === knowledgeId ? { ...k, ...updates } : k
     );
-    updateProduct(productId, { attachments: updatedAttachments });
+    updateProduct(productId, { knowledgeBase: updatedKnowledge });
   };
 
-  const deleteAttachment = (productId: string, attachmentId: string) => {
+  const deleteKnowledge = (productId: string, knowledgeId: string) => {
     const product = agent.products.find((p) => p.id === productId);
     if (!product) return;
 
-    updateProduct(productId, { attachments: product.attachments.filter((a) => a.id !== attachmentId) });
+    updateProduct(productId, { knowledgeBase: product.knowledgeBase.filter((k) => k.id !== knowledgeId) });
+  };
+
+  // Lead Materials handlers
+  const addLeadMaterial = (productId: string) => {
+    const product = agent.products.find((p) => p.id === productId);
+    if (!product) return;
+
+    const newMaterial: LeadMaterial = {
+      id: Date.now().toString(),
+      name: '',
+      type: 'pdf',
+      url: '',
+      description: '',
+    };
+    updateProduct(productId, { leadMaterials: [...product.leadMaterials, newMaterial] });
+  };
+
+  const updateLeadMaterial = (productId: string, materialId: string, updates: Partial<LeadMaterial>) => {
+    const product = agent.products.find((p) => p.id === productId);
+    if (!product) return;
+
+    const updatedMaterials = product.leadMaterials.map((m) =>
+      m.id === materialId ? { ...m, ...updates } : m
+    );
+    updateProduct(productId, { leadMaterials: updatedMaterials });
+  };
+
+  const deleteLeadMaterial = (productId: string, materialId: string) => {
+    const product = agent.products.find((p) => p.id === productId);
+    if (!product) return;
+
+    updateProduct(productId, { leadMaterials: product.leadMaterials.filter((m) => m.id !== materialId) });
   };
 
   return (
@@ -136,7 +169,7 @@ export function ProductCatalogTab({ agent, onUpdate }: ProductCatalogTabProps) {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-xl font-semibold text-foreground mb-1">Catálogo de Produtos</h3>
-          <p className="text-sm text-muted-foreground">Gerencie os produtos, FAQs e anexos para RAG.</p>
+          <p className="text-sm text-muted-foreground">Gerencie os produtos, FAQs, base de conhecimento e materiais para leads.</p>
         </div>
         <Button onClick={addProduct} className="gap-2">
           <Plus className="h-4 w-4" />
@@ -180,10 +213,16 @@ export function ProductCatalogTab({ agent, onUpdate }: ProductCatalogTabProps) {
                             {product.faq.length} FAQ
                           </Badge>
                         )}
-                        {product.attachments.length > 0 && (
-                          <Badge variant="secondary" className="gap-1">
-                            <Paperclip className="h-3 w-3" />
-                            {product.attachments.length} anexos
+                        {product.knowledgeBase.length > 0 && (
+                          <Badge variant="outline" className="gap-1 border-blue-500/50 text-blue-600">
+                            <Brain className="h-3 w-3" />
+                            {product.knowledgeBase.length} RAG
+                          </Badge>
+                        )}
+                        {product.leadMaterials.length > 0 && (
+                          <Badge variant="outline" className="gap-1 border-green-500/50 text-green-600">
+                            <Send className="h-3 w-3" />
+                            {product.leadMaterials.length} materiais
                           </Badge>
                         )}
                       </div>
@@ -295,55 +334,166 @@ export function ProductCatalogTab({ agent, onUpdate }: ProductCatalogTabProps) {
                       )}
                     </div>
 
-                    {/* Attachments Section */}
-                    <div className="space-y-3">
+                    {/* Knowledge Base Section (RAG) */}
+                    <div className="space-y-3 p-4 rounded-lg border border-blue-500/20 bg-blue-500/5">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Send className="h-4 w-4 text-primary" />
-                          <h4 className="font-medium text-foreground">Materiais para Envio ao Lead</h4>
+                          <Brain className="h-4 w-4 text-blue-600" />
+                          <h4 className="font-medium text-foreground">Base de Conhecimento (RAG)</h4>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => addAttachment(product.id)} className="gap-1">
+                        <Button variant="outline" size="sm" onClick={() => addKnowledge(product.id)} className="gap-1">
                           <Plus className="h-3 w-3" />
-                          Adicionar Material
+                          Adicionar Documento
                         </Button>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Adicione materiais como PDFs (ementa, apresentação), vídeos do coordenador ou links úteis. 
-                        O agente poderá enviar esses materiais quando o lead pedir mais detalhes.
+                        Documentos que o agente consulta internamente para responder perguntas. <strong>Não são enviados ao lead.</strong>
                       </p>
                       
-                      {product.attachments.length === 0 ? (
+                      {product.knowledgeBase.length === 0 ? (
                         <p className="text-sm text-muted-foreground italic">
-                          Nenhum material cadastrado. Adicione PDFs, vídeos ou links para o agente enviar aos leads interessados.
+                          Nenhum documento na base de conhecimento. Adicione PDFs, links ou textos para o agente consultar.
                         </p>
                       ) : (
                         <Table>
                           <TableHeader>
-                            <TableRow className="bg-muted/30">
-                              <TableHead className="font-medium">Nome do Material</TableHead>
-                              <TableHead className="font-medium w-[120px]">Tipo</TableHead>
-                              <TableHead className="font-medium">URL</TableHead>
+                            <TableRow className="bg-blue-500/10">
+                              <TableHead className="font-medium">Nome</TableHead>
+                              <TableHead className="font-medium w-[100px]">Tipo</TableHead>
+                              <TableHead className="font-medium">URL / Conteúdo</TableHead>
                               <TableHead className="font-medium">Descrição</TableHead>
-                              <TableHead className="font-medium w-[100px] text-center">Enviar?</TableHead>
                               <TableHead className="w-[50px]"></TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {product.attachments.map((attachment) => (
-                              <TableRow key={attachment.id} className="group">
+                            {product.knowledgeBase.map((item) => (
+                              <TableRow key={item.id} className="group">
                                 <TableCell>
                                   <Input
-                                    value={attachment.name}
-                                    onChange={(e) => updateAttachment(product.id, attachment.id, { name: e.target.value })}
-                                    placeholder="Nome do anexo"
+                                    value={item.name}
+                                    onChange={(e) => updateKnowledge(product.id, item.id, { name: e.target.value })}
+                                    placeholder="Nome do documento"
                                     className="border-transparent bg-transparent focus:bg-background focus:border-input"
                                   />
                                 </TableCell>
                                 <TableCell>
                                   <Select
-                                    value={attachment.type}
-                                    onValueChange={(value: Attachment['type']) => 
-                                      updateAttachment(product.id, attachment.id, { type: value })
+                                    value={item.type}
+                                    onValueChange={(value: KnowledgeBase['type']) => 
+                                      updateKnowledge(product.id, item.id, { type: value })
+                                    }
+                                  >
+                                    <SelectTrigger className="border-transparent bg-transparent focus:bg-background">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="pdf">
+                                        <div className="flex items-center gap-2">
+                                          <FileText className="h-3 w-3" />
+                                          PDF
+                                        </div>
+                                      </SelectItem>
+                                      <SelectItem value="doc">
+                                        <div className="flex items-center gap-2">
+                                          <FileText className="h-3 w-3" />
+                                          DOC
+                                        </div>
+                                      </SelectItem>
+                                      <SelectItem value="link">
+                                        <div className="flex items-center gap-2">
+                                          <Link className="h-3 w-3" />
+                                          Link
+                                        </div>
+                                      </SelectItem>
+                                      <SelectItem value="text">
+                                        <div className="flex items-center gap-2">
+                                          <FileText className="h-3 w-3" />
+                                          Texto
+                                        </div>
+                                      </SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </TableCell>
+                                <TableCell>
+                                  <Input
+                                    value={item.url}
+                                    onChange={(e) => updateKnowledge(product.id, item.id, { url: e.target.value })}
+                                    placeholder="https://... ou texto direto"
+                                    className="border-transparent bg-transparent focus:bg-background focus:border-input"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Input
+                                    value={item.description || ''}
+                                    onChange={(e) => updateKnowledge(product.id, item.id, { description: e.target.value })}
+                                    placeholder="Descrição do conteúdo"
+                                    className="border-transparent bg-transparent focus:bg-background focus:border-input"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => deleteKnowledge(product.id, item.id)}
+                                    className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      )}
+                    </div>
+
+                    {/* Lead Materials Section */}
+                    <div className="space-y-3 p-4 rounded-lg border border-green-500/20 bg-green-500/5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Send className="h-4 w-4 text-green-600" />
+                          <h4 className="font-medium text-foreground">Materiais para Envio ao Lead</h4>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => addLeadMaterial(product.id)} className="gap-1">
+                          <Plus className="h-3 w-3" />
+                          Adicionar Material
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Materiais que o agente pode <strong>enviar diretamente ao lead</strong> quando solicitar mais detalhes (ex: ementa, vídeo do coordenador).
+                      </p>
+                      
+                      {product.leadMaterials.length === 0 ? (
+                        <p className="text-sm text-muted-foreground italic">
+                          Nenhum material para envio. Adicione PDFs, vídeos ou links para compartilhar com leads interessados.
+                        </p>
+                      ) : (
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-green-500/10">
+                              <TableHead className="font-medium">Nome</TableHead>
+                              <TableHead className="font-medium w-[100px]">Tipo</TableHead>
+                              <TableHead className="font-medium">URL</TableHead>
+                              <TableHead className="font-medium">Descrição</TableHead>
+                              <TableHead className="w-[50px]"></TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {product.leadMaterials.map((item) => (
+                              <TableRow key={item.id} className="group">
+                                <TableCell>
+                                  <Input
+                                    value={item.name}
+                                    onChange={(e) => updateLeadMaterial(product.id, item.id, { name: e.target.value })}
+                                    placeholder="Nome do material"
+                                    className="border-transparent bg-transparent focus:bg-background focus:border-input"
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <Select
+                                    value={item.type}
+                                    onValueChange={(value: LeadMaterial['type']) => 
+                                      updateLeadMaterial(product.id, item.id, { type: value })
                                     }
                                   >
                                     <SelectTrigger className="border-transparent bg-transparent focus:bg-background">
@@ -374,44 +524,30 @@ export function ProductCatalogTab({ agent, onUpdate }: ProductCatalogTabProps) {
                                           Link
                                         </div>
                                       </SelectItem>
-                                      <SelectItem value="text">
-                                        <div className="flex items-center gap-2">
-                                          <FileText className="h-3 w-3" />
-                                          Texto
-                                        </div>
-                                      </SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </TableCell>
                                 <TableCell>
                                   <Input
-                                    value={attachment.url}
-                                    onChange={(e) => updateAttachment(product.id, attachment.id, { url: e.target.value })}
-                                    placeholder="https://... ou texto direto"
+                                    value={item.url}
+                                    onChange={(e) => updateLeadMaterial(product.id, item.id, { url: e.target.value })}
+                                    placeholder="https://..."
                                     className="border-transparent bg-transparent focus:bg-background focus:border-input"
                                   />
                                 </TableCell>
                                 <TableCell>
                                   <Input
-                                    value={attachment.description || ''}
-                                    onChange={(e) => updateAttachment(product.id, attachment.id, { description: e.target.value })}
+                                    value={item.description || ''}
+                                    onChange={(e) => updateLeadMaterial(product.id, item.id, { description: e.target.value })}
                                     placeholder="Ex: Ementa completa do curso"
                                     className="border-transparent bg-transparent focus:bg-background focus:border-input"
-                                  />
-                                </TableCell>
-                                <TableCell className="text-center">
-                                  <Checkbox
-                                    checked={attachment.sendToLead !== false}
-                                    onCheckedChange={(checked) => 
-                                      updateAttachment(product.id, attachment.id, { sendToLead: !!checked })
-                                    }
                                   />
                                 </TableCell>
                                 <TableCell>
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => deleteAttachment(product.id, attachment.id)}
+                                    onClick={() => deleteLeadMaterial(product.id, item.id)}
                                     className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
                                   >
                                     <Trash2 className="h-3 w-3" />
