@@ -66,6 +66,35 @@ export interface BusinessHours {
   };
 }
 
+export type FollowUpStage = 
+  | 'initial_contact'      // Lead iniciou conversa mas não engajou
+  | 'product_aware'        // Conheceu o produto mas não viu preço
+  | 'price_aware'          // Viu preço mas não comprou
+  | 'objection_raised'     // Levantou objeção e parou
+  | 'cart_abandoned'       // Iniciou checkout mas não finalizou
+  | 'negotiation'          // Em negociação/pedindo desconto
+  | 'waiting_decision';    // Disse que vai pensar
+
+export interface FollowUpTemplate {
+  id: string;
+  stage: FollowUpStage;
+  attempt: number;  // 1, 2, 3...
+  delayMinutes: number;
+  message: string;
+  isActive: boolean;
+}
+
+export interface FollowUpStrategy {
+  enabled: boolean;
+  useSmartTiming: boolean;  // Ajusta horário baseado em quando lead estava mais ativo
+  respectQuietHours: boolean;
+  quietHoursStart: string;  // Ex: "22:00"
+  quietHoursEnd: string;    // Ex: "08:00"
+  maxDailyMessages: number;
+  stopOnNegativeResponse: boolean;
+  templates: FollowUpTemplate[];
+}
+
 export interface PersonalityTraits {
   empathy: number;
   assertiveness: number;
@@ -110,9 +139,10 @@ export interface Agent {
   
   // Behavior
   proactivityLevel: 'baixo' | 'medio' | 'alto';
-  followUpDelay: number; // minutes
-  maxFollowUps: number;
+  followUpDelay: number; // minutes (legacy, kept for compatibility)
+  maxFollowUps: number; // legacy, kept for compatibility
   typingSimulation: boolean;
+  followUpStrategy: FollowUpStrategy;
   
   // Availability
   businessHours: BusinessHours;
