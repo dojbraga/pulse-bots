@@ -7,9 +7,10 @@ export interface FAQItem {
 export interface Attachment {
   id: string;
   name: string;
-  type: 'pdf' | 'doc' | 'link' | 'text';
+  type: 'pdf' | 'doc' | 'link' | 'text' | 'video';
   url: string;
   description?: string;
+  sendToLead?: boolean;
 }
 
 export interface Product {
