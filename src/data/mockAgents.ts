@@ -22,6 +22,24 @@ export const mockAgents: Agent[] = [
     discountLimit: 15,
     handoffContact: 'vendas@empresa.com',
     webhookUrl: 'https://n8n.empresa.com/webhook/agent-1',
+    integrationTriggers: [
+      {
+        id: '1',
+        name: 'Enviar Curso de Interesse para CRM',
+        event: 'interest_identified',
+        dataFields: ['nome', 'email', 'telefone', 'curso_interesse'],
+        webhookUrl: 'https://hooks.zapier.com/exemplo/curso-interesse',
+        isActive: true,
+      },
+      {
+        id: '2',
+        name: 'Lead Qualificado',
+        event: 'lead_captured',
+        dataFields: ['nome', 'email', 'telefone', 'origem_lead'],
+        webhookUrl: 'https://n8n.empresa.com/webhook/lead-qualificado',
+        isActive: false,
+      },
+    ],
   },
   {
     id: '2',
@@ -40,6 +58,7 @@ export const mockAgents: Agent[] = [
     discountLimit: 0,
     handoffContact: 'suporte@empresa.com',
     webhookUrl: 'https://n8n.empresa.com/webhook/agent-2',
+    integrationTriggers: [],
   },
   {
     id: '3',
@@ -58,5 +77,6 @@ export const mockAgents: Agent[] = [
     discountLimit: 10,
     handoffContact: 'consultoria@empresa.com',
     webhookUrl: 'https://n8n.empresa.com/webhook/agent-3',
+    integrationTriggers: [],
   },
 ];

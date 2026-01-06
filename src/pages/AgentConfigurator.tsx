@@ -7,6 +7,7 @@ import { IdentityTab } from '@/components/configurator/IdentityTab';
 import { ProductCatalogTab } from '@/components/configurator/ProductCatalogTab';
 import { ObjectionsTab } from '@/components/configurator/ObjectionsTab';
 import { GuardrailsTab } from '@/components/configurator/GuardrailsTab';
+import { TriggersTab } from '@/components/configurator/TriggersTab';
 import { ConnectionsTab } from '@/components/configurator/ConnectionsTab';
 import { mockAgents } from '@/data/mockAgents';
 import { Agent, TabType } from '@/types/agent';
@@ -40,6 +41,7 @@ export default function AgentConfigurator() {
         discountLimit: 10,
         handoffContact: '',
         webhookUrl: '',
+        integrationTriggers: [],
       });
     }
   }, [id]);
@@ -79,6 +81,8 @@ export default function AgentConfigurator() {
         return <ObjectionsTab agent={agent} onUpdate={handleUpdate} />;
       case 'guardrails':
         return <GuardrailsTab agent={agent} onUpdate={handleUpdate} />;
+      case 'triggers':
+        return <TriggersTab agent={agent} onUpdate={handleUpdate} />;
       case 'connections':
         return <ConnectionsTab agent={agent} onUpdate={handleUpdate} />;
       default:
