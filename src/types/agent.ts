@@ -1,9 +1,25 @@
+export interface FAQItem {
+  id: string;
+  question: string;
+  answer: string;
+}
+
+export interface Attachment {
+  id: string;
+  name: string;
+  type: 'pdf' | 'doc' | 'link' | 'text';
+  url: string;
+  description?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
   price: number;
   description: string;
   checkoutLink: string;
+  faq: FAQItem[];
+  attachments: Attachment[];
 }
 
 export interface ObjectionRule {

@@ -11,8 +11,29 @@ export const mockAgents: Agent[] = [
     conversationsToday: 24,
     whatsappConnected: true,
     products: [
-      { id: '1', name: 'Curso de Vendas', price: 997, description: 'Aprenda a vender mais', checkoutLink: 'https://checkout.com/curso-vendas' },
-      { id: '2', name: 'Mentoria Premium', price: 2497, description: 'Acompanhamento individual', checkoutLink: 'https://checkout.com/mentoria' },
+      { 
+        id: '1', 
+        name: 'Curso de Vendas', 
+        price: 997, 
+        description: 'Aprenda a vender mais', 
+        checkoutLink: 'https://checkout.com/curso-vendas',
+        faq: [
+          { id: '1', question: 'Quanto tempo tenho acesso?', answer: 'Acesso vitalício ao curso completo.' },
+          { id: '2', question: 'Tem garantia?', answer: 'Sim, 7 dias de garantia incondicional.' },
+        ],
+        attachments: [
+          { id: '1', name: 'Ementa do Curso', type: 'pdf', url: 'https://exemplo.com/ementa.pdf', description: 'Grade curricular completa' },
+        ],
+      },
+      { 
+        id: '2', 
+        name: 'Mentoria Premium', 
+        price: 2497, 
+        description: 'Acompanhamento individual', 
+        checkoutLink: 'https://checkout.com/mentoria',
+        faq: [],
+        attachments: [],
+      },
     ],
     objectionRules: [
       { id: '1', trigger: 'O cliente disse que está caro', action: 'Oferecer desconto de 5% e destacar o valor' },
@@ -50,7 +71,7 @@ export const mockAgents: Agent[] = [
     systemPrompt: 'Você é uma assistente de suporte...',
     conversationsToday: 42,
     whatsappConnected: true,
-    products: [],
+    products: [] as Agent['products'],
     objectionRules: [
       { id: '1', trigger: 'Cliente frustrado', action: 'Pedir desculpas e oferecer solução imediata' },
     ],
@@ -70,7 +91,15 @@ export const mockAgents: Agent[] = [
     conversationsToday: 0,
     whatsappConnected: false,
     products: [
-      { id: '1', name: 'Consultoria Estratégica', price: 5000, description: 'Análise completa do negócio', checkoutLink: 'https://checkout.com/consultoria' },
+      { 
+        id: '1', 
+        name: 'Consultoria Estratégica', 
+        price: 5000, 
+        description: 'Análise completa do negócio', 
+        checkoutLink: 'https://checkout.com/consultoria',
+        faq: [],
+        attachments: [],
+      },
     ],
     objectionRules: [],
     forbiddenWords: [],
