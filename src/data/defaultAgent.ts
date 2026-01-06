@@ -1,4 +1,4 @@
-import { Agent, BusinessHours } from '@/types/agent';
+import { Agent, BusinessHours, PersonalityTraits } from '@/types/agent';
 
 export const defaultBusinessHours: BusinessHours = {
   enabled: false,
@@ -14,6 +14,14 @@ export const defaultBusinessHours: BusinessHours = {
   },
 };
 
+export const defaultPersonalityTraits: PersonalityTraits = {
+  empathy: 50,
+  assertiveness: 50,
+  patience: 50,
+  enthusiasm: 50,
+  urgency: 50,
+};
+
 export const createDefaultAgent = (id: string): Agent => ({
   id,
   name: 'Novo Agente',
@@ -23,6 +31,7 @@ export const createDefaultAgent = (id: string): Agent => ({
   persona: 'consultor',
   voiceTone: 'profissional',
   avatar: '',
+  personalityTraits: defaultPersonalityTraits,
   
   // Company Context
   companyName: '',
@@ -40,6 +49,12 @@ export const createDefaultAgent = (id: string): Agent => ({
   greetingMessage: 'Olá! 👋 Como posso ajudar você hoje?',
   farewellMessage: 'Obrigado pelo contato! Estou à disposição.',
   awayMessage: 'Estamos fora do horário de atendimento. Retornaremos em breve!',
+  
+  // Goals
+  primaryGoal: 'conversion',
+  secondaryGoal: 'build_relationship',
+  successMetric: '',
+  uniqueSellingPoints: '',
   
   // Behavior
   proactivityLevel: 'medio',

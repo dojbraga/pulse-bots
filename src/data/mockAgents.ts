@@ -1,5 +1,5 @@
 import { Agent } from '@/types/agent';
-import { defaultBusinessHours } from './defaultAgent';
+import { defaultBusinessHours, defaultPersonalityTraits } from './defaultAgent';
 
 export const mockAgents: Agent[] = [
   {
@@ -9,6 +9,7 @@ export const mockAgents: Agent[] = [
     persona: 'agressivo',
     voiceTone: 'direto',
     avatar: '',
+    personalityTraits: { empathy: 40, assertiveness: 85, patience: 30, enthusiasm: 90, urgency: 80 },
     
     // Company Context
     companyName: 'Escola de Vendas Premium',
@@ -106,6 +107,7 @@ export const mockAgents: Agent[] = [
     persona: 'suporte',
     voiceTone: 'empatico',
     avatar: '',
+    personalityTraits: { empathy: 90, assertiveness: 25, patience: 85, enthusiasm: 40, urgency: 15 },
     
     companyName: 'TechSoft Solutions',
     industry: 'Tecnologia',
@@ -148,6 +150,7 @@ export const mockAgents: Agent[] = [
     persona: 'consultor',
     voiceTone: 'profissional',
     avatar: '',
+    personalityTraits: { empathy: 60, assertiveness: 55, patience: 70, enthusiasm: 50, urgency: 35 },
     
     companyName: 'Consultoria Estratégica BR',
     industry: 'Consultoria',

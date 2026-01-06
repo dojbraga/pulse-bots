@@ -66,6 +66,14 @@ export interface BusinessHours {
   };
 }
 
+export interface PersonalityTraits {
+  empathy: number;
+  assertiveness: number;
+  patience: number;
+  enthusiasm: number;
+  urgency: number;
+}
+
 export interface Agent {
   id: string;
   name: string;
@@ -75,6 +83,7 @@ export interface Agent {
   persona: 'consultor' | 'agressivo' | 'suporte' | 'closer' | 'qualificador';
   voiceTone: 'empatico' | 'direto' | 'amigavel' | 'profissional' | 'entusiasmado';
   avatar?: string;
+  personalityTraits?: PersonalityTraits;
   
   // Company Context
   companyName: string;
@@ -92,6 +101,12 @@ export interface Agent {
   greetingMessage: string;
   farewellMessage: string;
   awayMessage: string;
+  
+  // Goals
+  primaryGoal?: string;
+  secondaryGoal?: string;
+  successMetric?: string;
+  uniqueSellingPoints?: string;
   
   // Behavior
   proactivityLevel: 'baixo' | 'medio' | 'alto';
