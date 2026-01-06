@@ -32,7 +32,10 @@ import {
   Trash2,
   Edit3,
   Moon,
-  Pencil
+  Pencil,
+  Copy,
+  Check,
+  FileText
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -200,6 +203,181 @@ export function IdentityTab({ agent, onUpdate }: IdentityTabProps) {
     updateFollowUpStrategy({
       templates: agent.followUpStrategy!.templates.filter(t => t.id !== templateId),
     });
+  };
+
+  const [copied, setCopied] = useState(false);
+
+  const generateSystemPrompt = () => {
+    const persona = PERSONA_DETAILS[agent.persona];
+    const tone = VOICE_TONE_DETAILS[agent.voiceTone];
+    const traits = agent.personalityTraits;
+    
+    const responseLengthMap = {
+      conciso: 'curtas e diretas (máximo 2-3 frases)',
+      equilibrado: 'de tamanho moderado (3-5 frases)',
+      detalhado: 'completas e detalhadas quando necessário'
+    };
+
+    const formalityMap = {
+      informal: 'informal e descontraída, como se estivesse conversando com um amigo',
+      neutro: 'equilibrada, nem muito formal nem muito informal',
+      formal: 'formal e profissional, adequada para ambiente corporativo'
+    };
+
+    const proactivityMap = {
+      baixo: 'Seja reativo - responda apenas quando perguntado, evite insistir.',
+      medio: 'Seja moderadamente proativo - faça perguntas relevantes e sugira próximos passos quando apropriado.',
+      alto: 'Seja altamente proativo - conduza ativamente a conversa, faça perguntas de qualificação e guie o lead para a conversão.'
+    };
+
+    const goalMap: Record<string, string> = {
+      conversion: 'converter o lead em cliente',
+      qualification: 'qualificar o lead e identificar oportunidades',
+      support: 'resolver dúvidas e dar suporte',
+      relationship: 'construir relacionamento e confiança',
+      build_relationship: 'construir relacionamento e confiança',
+      scheduling: 'agendar reuniões ou demonstrações',
+      information: 'fornecer informações sobre produtos/serviços'
+    };
+
+    let prompt = `# Identidade do Agente
+
+Você é ${agent.name}, um agente de vendas ${persona?.description?.toLowerCase() || 'especializado'}.
+
+## Perfil
+- **Persona**: ${agent.persona.charAt(0).toUpperCase() + agent.persona.slice(1)} ${persona?.icon || ''}
+- **Tom de voz**: ${tone?.description || agent.voiceTone} ${tone?.icon || ''}
+- **Idioma**: ${agent.language === 'pt-BR' ? 'Português (Brasil)' : agent.language}
+
+## Traços de Personalidade (escala 0-100)
+- Empatia: ${traits?.empathy ?? 50}/100 ${(traits?.empathy ?? 50) >= 70 ? '- Demonstre compreensão genuína pelos desafios do cliente' : ''}
+- Assertividade: ${traits?.assertiveness ?? 50}/100 ${(traits?.assertiveness ?? 50) >= 70 ? '- Seja direto e conduza para a ação' : ''}
+- Paciência: ${traits?.patience ?? 50}/100 ${(traits?.patience ?? 50) >= 70 ? '- Não apresse o cliente, responda com calma' : ''}
+- Entusiasmo: ${traits?.enthusiasm ?? 50}/100 ${(traits?.enthusiasm ?? 50) >= 70 ? '- Mostre energia e paixão pelo que oferece' : ''}
+- Urgência: ${traits?.urgency ?? 50}/100 ${(traits?.urgency ?? 50) >= 70 ? '- Crie senso de escassez e oportunidade' : ''}
+
+# Contexto da Empresa
+
+${agent.companyName ? `**Empresa**: ${agent.companyName}` : ''}
+${agent.industry ? `**Segmento**: ${agent.industry}` : ''}
+${agent.companyDescription ? `**Sobre**: ${agent.companyDescription}` : ''}
+${agent.targetAudience ? `**Público-alvo**: ${agent.targetAudience}` : ''}
+${agent.uniqueSellingPoints ? `**Diferenciais**: ${agent.uniqueSellingPoints}` : ''}
+
+# Objetivos
+
+- **Objetivo principal**: ${goalMap[agent.primaryGoal || 'conversion'] || agent.primaryGoal}
+${agent.secondaryGoal ? `- **Objetivo secundário**: ${goalMap[agent.secondaryGoal] || agent.secondaryGoal}` : ''}
+${agent.successMetric ? `- **Métrica de sucesso**: ${agent.successMetric}` : ''}
+
+# Estilo de Comunicação
+
+- Use respostas ${responseLengthMap[agent.responseLength]}
+- Mantenha uma linguagem ${formalityMap[agent.formalityLevel]}
+${agent.useEmojis ? '- Use emojis moderadamente para tornar a conversa mais humanizada' : '- NÃO use emojis nas mensagens'}
+
+# Comportamento
+
+${proactivityMap[agent.proactivityLevel]}
+
+## Mensagens Padrão
+- **Boas-vindas**: "${agent.greetingMessage}"
+- **Despedida**: "${agent.farewellMessage}"
+${agent.awayMessage ? `- **Ausência**: "${agent.awayMessage}"` : ''}
+
+# Regras de Negócio
+`;
+
+    if (agent.forbiddenWords?.length > 0) {
+      prompt += `\n## Palavras Proibidas\nNUNCA use estas palavras: ${agent.forbiddenWords.join(', ')}\n`;
+    }
+
+    if (agent.discountLimit > 0) {
+      prompt += `\n## Limite de Desconto\nVocê pode oferecer no máximo ${agent.discountLimit}% de desconto.\n`;
+    }
+
+    if (agent.handoffContact) {
+      prompt += `\n## Handoff\nQuando necessário transferir para humano, encaminhe para: ${agent.handoffContact}\n`;
+    }
+
+    if (agent.products?.length > 0) {
+      prompt += `\n# Catálogo de Produtos\n\n`;
+      agent.products.forEach((product, i) => {
+        prompt += `## ${i + 1}. ${product.name}\n`;
+        prompt += `- **Preço**: R$ ${product.price.toLocaleString('pt-BR')}\n`;
+        prompt += `- **Descrição**: ${product.description}\n`;
+        if (product.faq?.length > 0) {
+          prompt += `- **FAQ**:\n`;
+          product.faq.forEach(faq => {
+            prompt += `  - P: ${faq.question}\n    R: ${faq.answer}\n`;
+          });
+        }
+        prompt += '\n';
+      });
+    }
+
+    if (agent.objectionRules?.length > 0) {
+      prompt += `\n# Tratamento de Objeções\n\n`;
+      agent.objectionRules.forEach((rule, i) => {
+        prompt += `${i + 1}. **Quando**: ${rule.trigger}\n   **Ação**: ${rule.action}\n\n`;
+      });
+    }
+
+    if (agent.followUpStrategy?.enabled && agent.followUpStrategy.templates?.length > 0) {
+      prompt += `\n# Estratégia de Follow-up\n\n`;
+      prompt += `- Máximo de ${agent.followUpStrategy.maxDailyMessages} mensagens por dia\n`;
+      prompt += `- ${agent.followUpStrategy.respectQuietHours ? `Respeitar horário silencioso (${agent.followUpStrategy.quietHoursStart} - ${agent.followUpStrategy.quietHoursEnd})` : 'Pode enviar a qualquer hora'}\n`;
+      prompt += `- ${agent.followUpStrategy.stopOnNegativeResponse ? 'Parar se o lead responder negativamente' : 'Continuar mesmo com respostas negativas'}\n\n`;
+      
+      const stageLabels: Record<string, string> = {
+        initial_contact: 'Contato Inicial',
+        product_aware: 'Conheceu Produto',
+        price_aware: 'Conheceu Preço',
+        objection_raised: 'Fez Objeção',
+        cart_abandoned: 'Carrinho Abandonado',
+        negotiation: 'Em Negociação',
+        waiting_decision: 'Vai Pensar'
+      };
+
+      const activeTemplates = agent.followUpStrategy.templates.filter(t => t.isActive);
+      const groupedByStage = activeTemplates.reduce((acc, t) => {
+        if (!acc[t.stage]) acc[t.stage] = [];
+        acc[t.stage].push(t);
+        return acc;
+      }, {} as Record<string, FollowUpTemplate[]>);
+
+      Object.entries(groupedByStage).forEach(([stage, templates]) => {
+        prompt += `## ${stageLabels[stage] || stage}\n`;
+        templates.sort((a, b) => a.attempt - b.attempt).forEach(t => {
+          prompt += `- #${t.attempt} (após ${formatDelay(t.delayMinutes)}): "${t.message}"\n`;
+        });
+        prompt += '\n';
+      });
+    }
+
+    if (agent.businessHours?.enabled) {
+      prompt += `\n# Horário de Atendimento\n\n`;
+      prompt += `Fuso: ${agent.businessHours.timezone}\n`;
+      Object.entries(agent.businessHours.schedule).forEach(([day, hours]) => {
+        if (hours.active) {
+          const dayLabels: Record<string, string> = {
+            monday: 'Segunda', tuesday: 'Terça', wednesday: 'Quarta',
+            thursday: 'Quinta', friday: 'Sexta', saturday: 'Sábado', sunday: 'Domingo'
+          };
+          prompt += `- ${dayLabels[day]}: ${hours.start} - ${hours.end}\n`;
+        }
+      });
+      prompt += `\nFora do horário, use a mensagem de ausência.\n`;
+    }
+
+    return prompt.trim();
+  };
+
+  const copyToClipboard = async () => {
+    const prompt = agent.systemPrompt || generateSystemPrompt();
+    await navigator.clipboard.writeText(prompt);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const personaDetail = PERSONA_DETAILS[agent.persona] || PERSONA_DETAILS.consultor;
@@ -1164,13 +1342,13 @@ export function IdentityTab({ agent, onUpdate }: IdentityTabProps) {
         <Collapsible open={openSections.advanced} onOpenChange={() => toggleSection('advanced')}>
           <CollapsibleTrigger className="flex items-center justify-between w-full p-4 rounded-lg border border-border bg-card/50 hover:bg-card transition-colors">
             <div className="flex items-center gap-2">
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              <FileText className="h-4 w-4 text-muted-foreground" />
               <span className="font-medium text-foreground">Configurações Avançadas</span>
               <Badge variant="outline" className="text-xs">Técnico</Badge>
             </div>
             <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${openSections.advanced ? 'rotate-180' : ''}`} />
           </CollapsibleTrigger>
-          <CollapsibleContent className="mt-2 p-4 rounded-lg border border-border bg-card/30">
+          <CollapsibleContent className="mt-2 p-4 rounded-lg border border-border bg-card/30 space-y-6">
             <div className="space-y-2">
               <Label htmlFor="systemPrompt">Prompt do Sistema (Override)</Label>
               <Textarea
@@ -1184,6 +1362,79 @@ export function IdentityTab({ agent, onUpdate }: IdentityTabProps) {
                 Este prompt substituirá o prompt padrão gerado automaticamente com base nas configurações acima.
                 Use apenas se você souber o que está fazendo.
               </p>
+            </div>
+
+            {/* Generated Prompt Preview */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <Label>Prompt Gerado Automaticamente</Label>
+                  <Badge className="bg-primary/10 text-primary border-primary/30 text-xs">Preview</Badge>
+                </div>
+                <button
+                  onClick={copyToClipboard}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium bg-muted hover:bg-muted/80 transition-colors"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-3 w-3 text-green-500" />
+                      <span className="text-green-500">Copiado!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3 w-3" />
+                      <span>Copiar</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              
+              <div className="relative">
+                <div className="absolute top-2 right-2 flex items-center gap-1">
+                  {agent.systemPrompt && (
+                    <Badge variant="destructive" className="text-[10px]">Override ativo</Badge>
+                  )}
+                </div>
+                <div 
+                  className={`p-4 rounded-lg border bg-background/50 font-mono text-xs leading-relaxed max-h-[400px] overflow-auto whitespace-pre-wrap ${
+                    agent.systemPrompt ? 'opacity-50 border-destructive/30' : 'border-border'
+                  }`}
+                >
+                  {agent.systemPrompt || generateSystemPrompt()}
+                </div>
+              </div>
+
+              {agent.systemPrompt && (
+                <div className="p-3 rounded-lg bg-destructive/5 border border-destructive/20">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-destructive mt-0.5" />
+                    <div className="text-sm text-muted-foreground">
+                      <strong className="text-destructive">Atenção:</strong> Você tem um prompt customizado ativo. 
+                      O prompt gerado automaticamente (mostrado acima em opacidade reduzida) será ignorado.
+                      <button 
+                        onClick={() => onUpdate({ systemPrompt: '' })}
+                        className="ml-2 text-primary hover:underline"
+                      >
+                        Limpar override
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {!agent.systemPrompt && (
+                <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
+                  <div className="flex items-start gap-2">
+                    <Lightbulb className="h-4 w-4 text-primary mt-0.5" />
+                    <div className="text-sm text-muted-foreground">
+                      <strong className="text-foreground">Este é o prompt final</strong> que será enviado para o modelo de IA. 
+                      Ele é gerado automaticamente com base em todas as configurações acima. 
+                      Você pode copiar e ajustar no campo de override se necessário.
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </CollapsibleContent>
         </Collapsible>
