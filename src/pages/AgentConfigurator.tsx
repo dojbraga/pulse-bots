@@ -4,6 +4,7 @@ import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConfiguratorSidebar } from '@/components/configurator/ConfiguratorSidebar';
 import { IdentityTab } from '@/components/configurator/IdentityTab';
+import { StagesTab } from '@/components/configurator/StagesTab';
 import { ProductCatalogTab } from '@/components/configurator/ProductCatalogTab';
 import { ObjectionsTab } from '@/components/configurator/ObjectionsTab';
 import { GuardrailsTab } from '@/components/configurator/GuardrailsTab';
@@ -59,6 +60,8 @@ export default function AgentConfigurator() {
     switch (activeTab) {
       case 'identity':
         return <IdentityTab agent={agent} onUpdate={handleUpdate} />;
+      case 'stages':
+        return <StagesTab agent={agent} onUpdate={handleUpdate} />;
       case 'catalog':
         return <ProductCatalogTab agent={agent} onUpdate={handleUpdate} />;
       case 'objections':

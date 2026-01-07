@@ -1,4 +1,4 @@
-import { Agent, BusinessHours, PersonalityTraits, FollowUpStrategy, FollowUpTemplate } from '@/types/agent';
+import { Agent, BusinessHours, PersonalityTraits, FollowUpStrategy, FollowUpTemplate, ConversationStage } from '@/types/agent';
 
 export const defaultBusinessHours: BusinessHours = {
   enabled: false,
@@ -185,6 +185,362 @@ export const defaultFollowUpStrategy: FollowUpStrategy = {
   templates: defaultFollowUpTemplates,
 };
 
+export const defaultConversationStages: ConversationStage[] = [
+  {
+    id: 'stage_welcome',
+    name: 'Boas-vindas',
+    description: 'Estágio inicial para recepcionar o lead e entender seu interesse',
+    icon: 'wave',
+    color: '#4CAF50',
+    isDefault: true,
+    order: 1,
+    instructions: `Você está no estágio de boas-vindas. Seu objetivo é:
+- Cumprimentar o lead de forma amigável
+- Identificar rapidamente o que ele procura
+- Coletar nome e contexto inicial
+- Direcionar para o produto/serviço mais adequado`,
+    entryConditions: [],
+    conditionLogic: 'and',
+    transitions: [
+      {
+        id: 'trans_welcome_to_discovery',
+        targetStageId: 'stage_discovery',
+        conditions: [
+          { id: 'cond_1', type: 'variable_set', operator: 'equals', value: 'nome' }
+        ],
+        conditionLogic: 'and',
+        priority: 1
+      }
+    ],
+    entryActions: [],
+    settings: {
+      allowHumanHandoff: false,
+      maxMessagesInStage: 5,
+      timeoutMinutes: 10,
+      timeoutAction: 'stay'
+    },
+    isActive: true
+  },
+  {
+    id: 'stage_discovery',
+    name: 'Descoberta',
+    description: 'Entender as necessidades, dores e objetivos do lead',
+    icon: 'search',
+    color: '#2196F3',
+    isDefault: false,
+    order: 2,
+    instructions: `Você está no estágio de descoberta. Seu objetivo é:
+- Fazer perguntas abertas para entender o contexto
+- Identificar dores e necessidades específicas
+- Descobrir orçamento e urgência
+- Qualificar o lead (BANT: Budget, Authority, Need, Timeline)`,
+    entryConditions: [
+      { id: 'cond_discovery', type: 'variable_set', operator: 'equals', value: 'nome' }
+    ],
+    conditionLogic: 'and',
+    transitions: [
+      {
+        id: 'trans_discovery_to_presentation',
+        targetStageId: 'stage_presentation',
+        conditions: [
+          { id: 'cond_2', type: 'keyword', operator: 'contains', value: 'interessado|quero saber mais|como funciona' }
+        ],
+        conditionLogic: 'or',
+        priority: 1
+      }
+    ],
+    entryActions: [
+      { id: 'action_1', type: 'tag_lead', config: { tag: 'em_descoberta' } }
+    ],
+    settings: {
+      allowHumanHandoff: false,
+      maxMessagesInStage: 10,
+      timeoutMinutes: 30,
+      timeoutAction: 'transition',
+      timeoutTargetStageId: 'stage_followup'
+    },
+    isActive: true
+  },
+  {
+    id: 'stage_presentation',
+    name: 'Apresentação',
+    description: 'Apresentar produto/serviço e seus benefícios',
+    icon: 'presentation',
+    color: '#9C27B0',
+    isDefault: false,
+    order: 3,
+    instructions: `Você está no estágio de apresentação. Seu objetivo é:
+- Apresentar o produto/serviço mais adequado às necessidades
+- Destacar benefícios e diferenciais
+- Usar provas sociais e cases de sucesso
+- Enviar materiais de apoio quando relevante`,
+    entryConditions: [
+      { id: 'cond_presentation', type: 'intent', operator: 'equals', value: 'interest' }
+    ],
+    conditionLogic: 'and',
+    transitions: [
+      {
+        id: 'trans_presentation_to_negotiation',
+        targetStageId: 'stage_negotiation',
+        conditions: [
+          { id: 'cond_3', type: 'keyword', operator: 'contains', value: 'preço|valor|quanto custa|investimento' }
+        ],
+        conditionLogic: 'or',
+        priority: 1
+      }
+    ],
+    entryActions: [
+      { id: 'action_2', type: 'send_file', config: { file: 'catalogo_produtos' } }
+    ],
+    settings: {
+      allowHumanHandoff: false,
+      maxMessagesInStage: 15,
+      timeoutMinutes: 60,
+      timeoutAction: 'transition',
+      timeoutTargetStageId: 'stage_followup'
+    },
+    isActive: true
+  },
+  {
+    id: 'stage_negotiation',
+    name: 'Negociação',
+    description: 'Apresentar preços, lidar com objeções e negociar',
+    icon: 'handshake',
+    color: '#FF9800',
+    isDefault: false,
+    order: 4,
+    instructions: `Você está no estágio de negociação. Seu objetivo é:
+- Apresentar preços e formas de pagamento
+- Lidar com objeções usando a matriz de objeções
+- Aplicar gatilhos de urgência e escassez quando apropriado
+- Oferecer descontos dentro do limite permitido
+- Direcionar para o checkout`,
+    entryConditions: [
+      { id: 'cond_negotiation', type: 'keyword', operator: 'contains', value: 'preço|valor' }
+    ],
+    conditionLogic: 'or',
+    transitions: [
+      {
+        id: 'trans_negotiation_to_closing',
+        targetStageId: 'stage_closing',
+        conditions: [
+          { id: 'cond_4', type: 'keyword', operator: 'contains', value: 'quero comprar|vou fechar|me manda o link' }
+        ],
+        conditionLogic: 'or',
+        priority: 1
+      },
+      {
+        id: 'trans_negotiation_to_objection',
+        targetStageId: 'stage_objection',
+        conditions: [
+          { id: 'cond_5', type: 'sentiment', operator: 'equals', value: 'negative' }
+        ],
+        conditionLogic: 'and',
+        priority: 2
+      }
+    ],
+    entryActions: [
+      { id: 'action_3', type: 'trigger_webhook', config: { event: 'price_presented' } }
+    ],
+    settings: {
+      allowHumanHandoff: true,
+      maxMessagesInStage: 20,
+      timeoutMinutes: 120,
+      timeoutAction: 'transition',
+      timeoutTargetStageId: 'stage_followup'
+    },
+    isActive: true
+  },
+  {
+    id: 'stage_objection',
+    name: 'Tratamento de Objeções',
+    description: 'Lidar com objeções específicas do lead',
+    icon: 'shield',
+    color: '#F44336',
+    isDefault: false,
+    order: 5,
+    instructions: `Você está no estágio de tratamento de objeções. Seu objetivo é:
+- Identificar a objeção real (preço, timing, autoridade, etc.)
+- Usar técnicas de contorno de objeção
+- Reforçar valor e benefícios
+- Se necessário, passar para atendimento humano`,
+    entryConditions: [
+      { id: 'cond_objection', type: 'sentiment', operator: 'equals', value: 'negative' }
+    ],
+    conditionLogic: 'and',
+    transitions: [
+      {
+        id: 'trans_objection_to_negotiation',
+        targetStageId: 'stage_negotiation',
+        conditions: [
+          { id: 'cond_6', type: 'sentiment', operator: 'equals', value: 'positive' }
+        ],
+        conditionLogic: 'and',
+        priority: 1
+      },
+      {
+        id: 'trans_objection_to_handoff',
+        targetStageId: 'stage_handoff',
+        conditions: [
+          { id: 'cond_7', type: 'message_count', operator: 'greater_than', value: '5' }
+        ],
+        conditionLogic: 'and',
+        priority: 2
+      }
+    ],
+    entryActions: [
+      { id: 'action_4', type: 'tag_lead', config: { tag: 'objecao_levantada' } }
+    ],
+    settings: {
+      allowHumanHandoff: true,
+      maxMessagesInStage: 10,
+      timeoutMinutes: 60,
+      timeoutAction: 'handoff'
+    },
+    isActive: true
+  },
+  {
+    id: 'stage_closing',
+    name: 'Fechamento',
+    description: 'Finalizar a venda e direcionar para checkout',
+    icon: 'check-circle',
+    color: '#4CAF50',
+    isDefault: false,
+    order: 6,
+    instructions: `Você está no estágio de fechamento. Seu objetivo é:
+- Confirmar a decisão de compra
+- Enviar link de checkout
+- Esclarecer últimas dúvidas sobre pagamento
+- Garantir uma experiência de compra fluida`,
+    entryConditions: [
+      { id: 'cond_closing', type: 'intent', operator: 'equals', value: 'purchase' }
+    ],
+    conditionLogic: 'and',
+    transitions: [
+      {
+        id: 'trans_closing_to_success',
+        targetStageId: 'stage_success',
+        conditions: [
+          { id: 'cond_8', type: 'custom', operator: 'equals', value: 'payment_confirmed' }
+        ],
+        conditionLogic: 'and',
+        priority: 1
+      }
+    ],
+    entryActions: [
+      { id: 'action_5', type: 'send_link', config: { link_type: 'checkout' } },
+      { id: 'action_6', type: 'trigger_webhook', config: { event: 'checkout_initiated' } }
+    ],
+    settings: {
+      allowHumanHandoff: true,
+      maxMessagesInStage: 10,
+      timeoutMinutes: 30,
+      timeoutAction: 'transition',
+      timeoutTargetStageId: 'stage_followup'
+    },
+    isActive: true
+  },
+  {
+    id: 'stage_success',
+    name: 'Sucesso',
+    description: 'Venda concluída - agradecer e orientar próximos passos',
+    icon: 'trophy',
+    color: '#FFD700',
+    isDefault: false,
+    order: 7,
+    instructions: `Você está no estágio de sucesso. Seu objetivo é:
+- Parabenizar pela compra
+- Explicar próximos passos (acesso, entrega, etc.)
+- Oferecer suporte se necessário
+- Solicitar feedback ou indicações`,
+    entryConditions: [
+      { id: 'cond_success', type: 'custom', operator: 'equals', value: 'payment_confirmed' }
+    ],
+    conditionLogic: 'and',
+    transitions: [],
+    entryActions: [
+      { id: 'action_7', type: 'trigger_webhook', config: { event: 'sale_completed' } },
+      { id: 'action_8', type: 'tag_lead', config: { tag: 'cliente' } }
+    ],
+    settings: {
+      allowHumanHandoff: false,
+      maxMessagesInStage: 5,
+      timeoutMinutes: 1440,
+      timeoutAction: 'stay'
+    },
+    isActive: true
+  },
+  {
+    id: 'stage_followup',
+    name: 'Follow-up',
+    description: 'Retomar contato com leads que esfriaram',
+    icon: 'clock',
+    color: '#607D8B',
+    isDefault: false,
+    order: 8,
+    instructions: `Você está no estágio de follow-up. Seu objetivo é:
+- Retomar a conversa de forma natural
+- Relembrar o interesse anterior
+- Oferecer algo novo (desconto, bônus, novidade)
+- Requalificar o lead`,
+    entryConditions: [
+      { id: 'cond_followup', type: 'time_elapsed', operator: 'greater_than', value: '1440' }
+    ],
+    conditionLogic: 'and',
+    transitions: [
+      {
+        id: 'trans_followup_to_discovery',
+        targetStageId: 'stage_discovery',
+        conditions: [
+          { id: 'cond_9', type: 'sentiment', operator: 'equals', value: 'positive' }
+        ],
+        conditionLogic: 'and',
+        priority: 1
+      }
+    ],
+    entryActions: [
+      { id: 'action_9', type: 'schedule_followup', config: { delay_hours: '24' } }
+    ],
+    settings: {
+      allowHumanHandoff: false,
+      maxMessagesInStage: 5,
+      timeoutMinutes: 4320,
+      timeoutAction: 'stay'
+    },
+    isActive: true
+  },
+  {
+    id: 'stage_handoff',
+    name: 'Passagem para Humano',
+    description: 'Transferir atendimento para um humano',
+    icon: 'user',
+    color: '#795548',
+    isDefault: false,
+    order: 9,
+    instructions: `Você está no estágio de handoff. Seu objetivo é:
+- Informar que um especialista assumirá o atendimento
+- Coletar informações pendentes
+- Resumir o contexto da conversa
+- Manter o lead engajado enquanto aguarda`,
+    entryConditions: [
+      { id: 'cond_handoff', type: 'keyword', operator: 'contains', value: 'falar com humano|atendente|pessoa real' }
+    ],
+    conditionLogic: 'or',
+    transitions: [],
+    entryActions: [
+      { id: 'action_10', type: 'handoff', config: { notify: 'true' } },
+      { id: 'action_11', type: 'trigger_webhook', config: { event: 'handoff_requested' } }
+    ],
+    settings: {
+      allowHumanHandoff: true,
+      maxMessagesInStage: 3,
+      timeoutMinutes: 15,
+      timeoutAction: 'stay'
+    },
+    isActive: true
+  }
+];
+
 export const createDefaultAgent = (id: string): Agent => ({
   id,
   name: 'Novo Agente',
@@ -244,4 +600,5 @@ export const createDefaultAgent = (id: string): Agent => ({
   handoffContact: '',
   webhookUrl: '',
   integrationTriggers: [],
+  conversationStages: defaultConversationStages,
 });

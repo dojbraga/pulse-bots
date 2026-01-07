@@ -1,5 +1,5 @@
 import { Agent } from '@/types/agent';
-import { defaultBusinessHours, defaultPersonalityTraits, defaultFollowUpStrategy, defaultFollowUpTemplates } from './defaultAgent';
+import { defaultBusinessHours, defaultPersonalityTraits, defaultFollowUpStrategy, defaultFollowUpTemplates, defaultConversationStages } from './defaultAgent';
 
 export const mockAgents: Agent[] = [
   {
@@ -107,6 +107,7 @@ export const mockAgents: Agent[] = [
         isActive: false,
       },
     ],
+    conversationStages: defaultConversationStages,
   },
   {
     id: '2',
@@ -158,6 +159,7 @@ export const mockAgents: Agent[] = [
     handoffContact: 'suporte@empresa.com',
     webhookUrl: 'https://n8n.empresa.com/webhook/agent-2',
     integrationTriggers: [],
+    conversationStages: defaultConversationStages,
   },
   {
     id: '3',
@@ -214,5 +216,6 @@ export const mockAgents: Agent[] = [
     handoffContact: 'consultoria@empresa.com',
     webhookUrl: 'https://n8n.empresa.com/webhook/agent-3',
     integrationTriggers: [],
+    conversationStages: defaultConversationStages,
   },
 ];
