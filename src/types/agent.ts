@@ -103,6 +103,73 @@ export interface PersonalityTraits {
   urgency: number;
 }
 
+// ============= Conversation Stages (Zaia-inspired) =============
+
+export type StageConditionType = 
+  | 'keyword'           // Contém palavra-chave
+  | 'intent'            // Intenção detectada
+  | 'variable_set'      // Variável capturada
+  | 'time_elapsed'      // Tempo desde última mensagem
+  | 'message_count'     // Número de mensagens
+  | 'product_mentioned' // Produto mencionado
+  | 'sentiment'         // Sentimento detectado
+  | 'custom';           // Condição customizada
+
+export interface StageCondition {
+  id: string;
+  type: StageConditionType;
+  operator: 'equals' | 'contains' | 'greater_than' | 'less_than' | 'not_equals';
+  value: string;
+}
+
+export interface StageTransition {
+  id: string;
+  targetStageId: string;
+  conditions: StageCondition[];
+  conditionLogic: 'and' | 'or';
+  priority: number;
+}
+
+export interface StageAction {
+  id: string;
+  type: 'send_file' | 'send_link' | 'capture_variable' | 'trigger_webhook' | 'schedule_followup' | 'handoff' | 'tag_lead';
+  config: Record<string, string>;
+}
+
+export interface ConversationStage {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+  isDefault: boolean;
+  order: number;
+  
+  // Instruções específicas para este estágio
+  instructions: string;
+  
+  // Condições de entrada
+  entryConditions: StageCondition[];
+  conditionLogic: 'and' | 'or';
+  
+  // Transições automáticas para outros estágios
+  transitions: StageTransition[];
+  
+  // Ações automáticas ao entrar no estágio
+  entryActions: StageAction[];
+  
+  // Configurações específicas
+  settings: {
+    allowHumanHandoff: boolean;
+    maxMessagesInStage: number;
+    timeoutMinutes: number;
+    timeoutAction: 'stay' | 'transition' | 'handoff';
+    timeoutTargetStageId?: string;
+  };
+  
+  isActive: boolean;
+}
+
 export interface Agent {
   id: string;
   name: string;
@@ -162,6 +229,9 @@ export interface Agent {
   handoffContact: string;
   webhookUrl: string;
   integrationTriggers: IntegrationTrigger[];
+  
+  // Conversation Stages (Zaia-inspired)
+  conversationStages: ConversationStage[];
 }
 
-export type TabType = 'identity' | 'catalog' | 'objections' | 'guardrails' | 'triggers' | 'connections';
+export type TabType = 'identity' | 'catalog' | 'objections' | 'guardrails' | 'triggers' | 'connections' | 'stages';

@@ -1,4 +1,4 @@
-import { ArrowLeft, User, Package, Brain, Shield, Zap, Plug } from 'lucide-react';
+import { ArrowLeft, User, Package, Brain, Shield, Zap, Plug, GitBranch } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { TabType } from '@/types/agent';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,7 @@ interface ConfiguratorSidebarProps {
 
 const tabs = [
   { id: 'identity' as TabType, label: 'Identidade & Comportamento', icon: User },
+  { id: 'stages' as TabType, label: 'Estágios de Conversa', icon: GitBranch },
   { id: 'catalog' as TabType, label: 'Catálogo de Produtos', icon: Package },
   { id: 'objections' as TabType, label: 'Matriz de Objeções', icon: Brain },
   { id: 'guardrails' as TabType, label: 'Guardrails & Segurança', icon: Shield },
